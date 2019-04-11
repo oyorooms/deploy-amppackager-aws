@@ -1,0 +1,11 @@
+LocalOnly = true
+PackagerBase = 'https://localhost:8080/'
+CertFile = '/.certs/fullchain.pem'
+KeyFile = '/.certs/privkey.pem'
+OCSPCache = '/tmp/amppkg-ocsp'
+
+[[URLSet]]
+  [URLSet.Sign]
+    Domain = "www.yourdomain.com"
+    PathRE = "/.*"
+    QueryRE = ".*"

@@ -1,0 +1,5 @@
+/amppkg.toml
+/main
+/fuzz_httpreq/fuzz.zip
+/fuzz_httpresp/fuzz.zip
+/transform.wasm

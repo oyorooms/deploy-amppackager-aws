@@ -1,0 +1,125 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package amp.transform;
+
+option go_package = "github.com/ampproject/amppackager/transformer/request";
+
+// A Request encapsulates input and contextual parameters for use by the
+// transformers.
+message Request {
+  // The AMP HTML document to transform.
+  string html = 1;
+
+  // The public URL of the document, i.e. the location that should appear in
+  // the browser URL bar.
+  string document_url = 2;
+
+  // The AMP runtime version.
+  string rtv = 4;
+
+  // The CSS contents to inline into the transformed HTML
+  string css = 5;
+
+  // This should be kept in sync with HtmlFormat.Code in
+  // github.com/ampproject/amphtml/validator/validator.proto.
+  enum HtmlFormat {
+    UNKNOWN_CODE = 0;  // Never used
+    AMP = 1;
+    AMP4ADS = 2;
+    AMP4EMAIL = 3;
+    EXPERIMENTAL = 4;  // Currently unused
+  }
+
+  // Transformations are only run if the HTML tag contains the attribute
+  // specifying one of the provided formats. If allowed_formats is empty, then
+  // all non-experimental AMP formats are allowed.
+  repeated HtmlFormat allowed_formats = 7;
+
+  enum TransformersConfig {
+    // Execute the default list of transformers. For packager production
+    // environments, this should be the config used.
+    DEFAULT = 0;
+
+    // Execute none, and simply parse and re-emit. Some normalization will be
+    // performed regardless, including, but not limited to:
+    // - HTML normalization (e.g. closing all non-void tags).
+    // - removal of all comments
+    // - lowercase-ing of attribute keys
+    // - lexical sort of attribute keys
+    // - text is escaped
+    //
+    // WARNING. THIS IS FOR TESTING PURPOSES ONLY.
+    // Use of this setting in a packager production environment could produce
+    // invalid transformed AMP when ingested by AMP caches.
+    NONE = 1;
+
+    // Execute the minimum needed for verification/validation.
+    //
+    // WARNING. FOR AMP CACHE USE ONLY.
+    // Use of this setting in a packager production environment could produce
+    // invalid transformed AMP when ingested by AMP caches.
+    VALIDATION = 2;
+
+    // Execute a custom set of transformers.
+    //
+    // WARNING. THIS IS FOR TESTING PURPOSES ONLY.
+    // Use of this setting in a packager production environment could produce
+    // invalid transformed AMP when ingested by AMP caches.
+    CUSTOM = 3;
+  }
+  TransformersConfig config = 6;
+
+  // If config == CUSTOM, this is the list of custom transformers to execute,
+  // in the order provided here. Otherwise, this is ignored.
+  repeated string transformers = 3;
+
+  // The version of the transforms to perform (optional). If specified, it must
+  // be a supported version.
+  int64 version = 8;
+}
+
+// An inclusive range of version numbers.
+message VersionRange {
+  int64 min = 1;
+  int64 max = 2;
+}
+
+// A Metadata is part of the transformers' response, and includes additional
+// information either not present in or not easily accessible from the HTML. It
+// should remain relatively small, as it undergoes a
+// serialization/deserialization round-trip when the Go library is called from
+// C.
+message Metadata {
+  message Preload {
+    // The URL of the resource to preload. Will be an absolute URL on the domain
+    // of the target AMP cache.
+    string url = 1;
+    // The `as` attribute of the preload, as specified in
+    // https://w3c.github.io/preload/#as-attribute and
+    // https://html.spec.whatwg.org/multipage/semantics.html#attr-link-as. The
+    // full list of potential values is specified in
+    // https://fetch.spec.whatwg.org/#concept-request-destination, though for
+    // the time being only "script" and "style" are allowed.
+    string as = 2;
+  }
+  // Absolute URLs of resources that should be preloaded when the AMP is
+  // prefetched. In a signed exchange (SXG) context, these would be included as
+  // `Link: rel=preload` headers, as these are used by the browser during SXG
+  // prefetch:
+  // https://github.com/WICG/webpackage/blob/master/explainer.md#prefetching-stops-here
+  repeated Preload preloads = 1;
+}
