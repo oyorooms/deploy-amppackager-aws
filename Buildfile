@@ -1,1 +1,1 @@
-make: ./scripts/amppkg.sh -b
+make: ./scripts/amppkg.sh -g

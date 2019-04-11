@@ -1,4 +1,0 @@
-fuzz_httpreq/examples/corpus/* -text
-fuzz_httpreq/examples/corpus/*-* linguist-generated
-fuzz_httpresp/examples/corpus/* -text
-fuzz_httpresp/examples/corpus/*-* linguist-generated
