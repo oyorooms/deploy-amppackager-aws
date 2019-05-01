@@ -17,9 +17,9 @@ Basic instructions required to run locally or to deploy on AWS.
 - The key must be ECDSA, curve secp256r1
 
 ### Running locally
-The `bin/amppkg` binary is the actual executable which will start the server. `scripts/amppkg.sh` is a helper shell script for various operations in this project. The following command will **b**uild a fresh binary and **r**un the server:
+The `bin/amppkg` binary is the actual executable which will start the server. `scripts/amppkg.sh` is a helper shell script for various operations in this project. The following command will **g**et, **b**uild a fresh binary and **r**un the server:
 ```
-./scripts/amppkg.sh -b -r
+./scripts/amppkg.sh -g -b -r
 ```
 Or, for running in **d**evelopment mode:
 ```
@@ -37,7 +37,7 @@ During deployment, the certificate and private key are downloaded securely via t
 Change this according to your setup: `https://s3-ap-southeast-1.amazonaws.com/path/to/certs/fullchain.pem`
 
 ### Updating the amppackager from it's GitHub repo
-Since this is just a deployment helper, the amppackager tool itself must be updated from it's own GitHub repo.
+Since this is just a deployment helper, it fetches the amppackager tool itself from it's own GitHub repo on each deployment.
 **This should be done to get the updates, but must be tested for compatibity whenever upgraded!**
 ```
 ./scripts/amppkg.sh -g
