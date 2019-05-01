@@ -42,3 +42,77 @@ Since this is just a deployment helper, the amppackager tool itself must be upda
 ```
 ./scripts/amppkg.sh -g
 ```
+
+## Details of the `amppkg.sh` script
+The script is made for local use. It has various flags that help from running the binary to even fetching the fresh amppackager version from it's GitHub repo.
+
+**Usage:** `./scripts/amppkg.sh -flag`
+
+**Possible flags:**
+```
+ -g Get and build latest amppackager (use only when updated package needed)
+ -b Build amppackager binary to "bin/amppkg"
+ -r Run amppackager binary
+ -d Run amppackager binary in development mode
+```
+
+## The amppackager server
+The server listens on port `8080`. It serves the signed exchange on URLs of this format:
+```
+localhost:8080/priv/doc/<Document's URL>
+```
+
+For example, `localhost:8080/priv/doc/https://www.example.com/awesome-amp-page/` will serve the signed exchange for a `https://www.example.com/awesome-amp-page/` AMP Page.
+
+It serves other resources like certificate information on the URL's of this format:
+```
+localhost:8080/amppkg/<Path to Resource>
+```
+
+## Checking activity logs on Elastic Beanstalk instances
+Helpful sample commands for checking EC2 logs:
+
+Go server logs:
+```
+sudo tail -f -n 300 /var/log/web-1.error.log
+sudo tail -f -n 300 /var/log/web-1.log ## <-- not used in current amppackager
+```
+EB activity logs:
+```
+sudo tail -f -n 300 /var/log/eb-activity.log
+```
+Nginx logs:
+```
+sudo tail -f -n 300 /var/log/nginx/error.log
+```
+
+## More on Elastic Beanstalk
+Accessing env vars and other configs:
+```
+sudo /opt/elasticbeanstalk/bin/get-config optionsettings ## (all config options)
+sudo /opt/elasticbeanstalk/bin/get-config environment ## (env vars as json)
+sudo /opt/elasticbeanstalk/bin/get-config environment -k GOPATH ## (particular env var value, here "GOPATH")
+```
+
+Refer hooks dir on EC2:
+```
+/opt/elasticbeanstalk/hooks/
+```
+
+## Generating ECDSA key and CSR (refer [this article](https://www.ericlight.com/using-ecdsa-certificates-with-lets-encrypt))
+If new key and certificate are needed, the following procedure should come in handy:
+
+Generate a new EC P-256 private key:
+```
+openssl ecparam -genkey -name secp256r1 | openssl ec -out privkey.pem
+```
+
+Generate a Certificate Signing Request (CSR) using the key:
+```
+openssl req -new -sha256 -key privkey.pem -nodes -out ec.csr -outform pem
+```
+
+Now the generated CSR can be submitted to the CA for signing.
+At the time of writing this, only DigiCert provides certificates with [CanSignHttpExchanges extension](https://www.digicert.com/account/ietf/http-signed-exchange.php).
+
+Other options are self-signed certificates (issue: OCSP issues) or free Let'sEncrypt certificates (issue: no CanSignHttpExchanges extension, so they work in development mode only).
